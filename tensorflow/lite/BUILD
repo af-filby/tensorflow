@@ -1304,6 +1304,52 @@ tflite_cc_shared_object(
     ],
 )
 
+# Shared lib target for convenience, pulls in the core runtime and builtin ops.
+# Note: This target is not yet finalized, and the exact set of exported (C/C++)
+# APIs is subject to change. The output library name is platform dependent:
+#   - Linux/Android: `libtensorflowlite.so`
+#   - Mac: `libtensorflowlite.dylib`
+#   - Windows: `tensorflowlite.dll`
+load("@org_tensorflow//tensorflow/lite:build_def.bzl", "tflite_linkopts")
+tflite_cc_shared_object(
+    name = "tensorflowlite2",
+    linkopts = tflite_linkopts() + [
+    "-s ENVIRONMENT='web'",
+    "-s ALLOW_MEMORY_GROWTH=1",
+    "-s FILESYSTEM=0",
+    "-s USE_PTHREADS=0",
+    "-s MODULARIZE=1",
+    "-s EXPORT_NAME=createTFLiteModule",
+  ],
+    deps = [
+        ":framework",
+        ":tflite_exported_symbols.lds",
+        ":tflite_version_script.lds",
+        "//tensorflow/lite/kernels:builtin_ops_all_linked",
+    ],
+)
+
+
+
+load("@org_tensorflow//tensorflow/lite:build_def.bzl", "tflite_linkopts")
+cc_shared_library(
+    name = "tensorflowlite3",
+    roots = [
+        ":framework",
+    ],
+    static_deps = [
+        "@//:__subpackages__",
+        "@flatbuffers//:__subpackages__",
+        "@ruy//:__subpackages__",
+
+    ]
+)
+
+
+
+
+
+
 cc_library_with_tflite(
     name = "test_util",
     testonly = True,
